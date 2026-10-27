@@ -19,6 +19,14 @@ public static class Divisors {
     private static List<int> FindDivisors(int number) {
         List<int> results = new();
         // TODO problem 1
+        // 1. Try each number from 1 up to, but not including, number.
+        // 2. If it divides evenly, add it to the results list.
+        // 3. Return the list after checking all the possible divisors.
+        for (int divisor = 1; divisor < number; divisor++) {
+            if (number % divisor == 0) {
+                results.Add(divisor);
+            }
+        }
         return results;
     }
 }
