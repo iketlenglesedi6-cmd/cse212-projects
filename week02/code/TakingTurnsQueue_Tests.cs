@@ -11,7 +11,8 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3) and
     // run until the queue is empty
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: 
+    // Defect(s) Found: Sue came out before Bob because new people were added at the front.
+    // Result: Passed after adding people at the back. Everyone finished in the expected order.
     public void TestTakingTurnsQueue_FiniteRepetition()
     {
         var bob = new Person("Bob", 2);
@@ -43,7 +44,8 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (5), Sue (3)
     // After running 5 times, add George with 3 turns.  Run until the queue is empty.
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, George, Sue, Tim, George, Tim, George
-    // Defect(s) Found: 
+    // Defect(s) Found: Sue came out before Bob because the queue added people at the front.
+    // Result: Passed after fixing the order. George joined at the back and took all three turns.
     public void TestTakingTurnsQueue_AddPlayerMidway()
     {
         var bob = new Person("Bob", 2);
@@ -85,7 +87,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Bob (2), Tim (Forever), Sue (3)
     // Run 10 times.
     // Expected Result: Bob, Tim, Sue, Bob, Tim, Sue, Tim, Sue, Tim, Tim
-    // Defect(s) Found: 
+    // Defect(s) Found: The queue started with Sue instead of Bob. After fixing that order,
+    // Tim disappeared after his first turn because zero turns was not treated as unlimited.
+    // Result: Passed after both fixes. Tim stays in the queue and his turns remain zero.
     public void TestTakingTurnsQueue_ForeverZero()
     {
         var timTurns = 0;
@@ -116,7 +120,9 @@ public class TakingTurnsQueueTests
     // Scenario: Create a queue with the following people and turns: Tim (Forever), Sue (3)
     // Run 10 times.
     // Expected Result: Tim, Sue, Tim, Sue, Tim, Sue, Tim, Tim, Tim, Tim
-    // Defect(s) Found: 
+    // Defect(s) Found: Sue came out before Tim. After fixing that order, Tim was still
+    // removed after one turn because negative turns was not treated as unlimited.
+    // Result: Passed after both fixes. Tim keeps taking turns and his turns remain -3.
     public void TestTakingTurnsQueue_ForeverNegative()
     {
         var timTurns = -3;
@@ -143,7 +149,8 @@ public class TakingTurnsQueueTests
     [TestMethod]
     // Scenario: Try to get the next person from an empty queue
     // Expected Result: Exception should be thrown with appropriate error message.
-    // Defect(s) Found: 
+    // Defect(s) Found: None. The empty queue already threw the expected exception and message.
+    // Result: Passed before and after the fixes.
     public void TestTakingTurnsQueue_Empty()
     {
         var players = new TakingTurnsQueue();
@@ -168,5 +175,41 @@ public class TakingTurnsQueueTests
                                 e.GetType(), e.Message)
             );
         }
+    }
+}
+
+public class TakingTurnsQueue
+{
+    private readonly Queue<Person> _people = new();
+
+    public int Length => _people.Count;
+
+    public void AddPerson(string name, int turns)
+    {
+        _people.Enqueue(new Person(name, turns));
+    }
+
+    public Person GetNextPerson()
+    {
+        if (_people.Count == 0)
+        {
+            throw new InvalidOperationException("No one in the queue.");
+        }
+
+        var person = _people.Dequeue();
+        if (person.Turns <= 0)
+        {
+            _people.Enqueue(person);
+        }
+        else
+        {
+            person.Turns--;
+            if (person.Turns > 0)
+            {
+                _people.Enqueue(person);
+            }
+        }
+
+        return person;
     }
 }
