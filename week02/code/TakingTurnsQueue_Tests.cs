@@ -177,39 +177,3 @@ public class TakingTurnsQueueTests
         }
     }
 }
-
-public class TakingTurnsQueue
-{
-    private readonly Queue<Person> _people = new();
-
-    public int Length => _people.Count;
-
-    public void AddPerson(string name, int turns)
-    {
-        _people.Enqueue(new Person(name, turns));
-    }
-
-    public Person GetNextPerson()
-    {
-        if (_people.Count == 0)
-        {
-            throw new InvalidOperationException("No one in the queue.");
-        }
-
-        var person = _people.Dequeue();
-        if (person.Turns <= 0)
-        {
-            _people.Enqueue(person);
-        }
-        else
-        {
-            person.Turns--;
-            if (person.Turns > 0)
-            {
-                _people.Enqueue(person);
-            }
-        }
-
-        return person;
-    }
-}
