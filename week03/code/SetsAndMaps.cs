@@ -21,9 +21,8 @@ public static class SetsAndMaps
     /// <param name="words">An array of 2-character words (lowercase, no duplicates)</param>
     public static string[] FindPairs(string[] words)
     {
-        var wordSet = new HashSet<string>(words);
+        var seenWords = new HashSet<string>();
         var pairs = new List<string>();
-        var pairedWords = new HashSet<string>();
 
         foreach (var word in words)
         {
@@ -32,8 +31,15 @@ public static class SetsAndMaps
                 continue;
             }
 
+            // Skip repeated words before creating their reverse.
+            if (!seenWords.Add(word))
+            {
+                continue;
+            }
+
             var reverse = new string([word[1], word[0]]);
-            if (wordSet.Contains(reverse) && pairedWords.Add(word) && pairedWords.Add(reverse))
+            // The pair is found only when its second word arrives.
+            if (seenWords.Contains(reverse))
             {
                 pairs.Add($"{word} & {reverse}");
             }
